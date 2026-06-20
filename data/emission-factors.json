@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "sources": ["CEA India", "MoEFCC", "IEA 2023"],
+    "currency": "INR",
+    "unit_notes": "All CO2 values in kg unless stated otherwise"
+  },
+  "transport": {
+    "petrol_car": {
+      "factor": 0.17,
+      "unit": "kg CO2 / km",
+      "description": "Petrol car emission factor"
+    },
+    "diesel_car": {
+      "factor": 0.19,
+      "unit": "kg CO2 / km",
+      "description": "Diesel car emission factor"
+    },
+    "two_wheeler_petrol": {
+      "factor": 0.045,
+      "unit": "kg CO2 / km",
+      "description": "Petrol two-wheeler emission factor"
+    },
+    "electric_vehicle": {
+      "factor": 0.06,
+      "unit": "kg CO2 / km",
+      "description": "EV / Electric two-wheeler (indirect coal-heavy grid)"
+    },
+    "bus_metro": {
+      "factor": 0.015,
+      "unit": "kg CO2 / km per passenger",
+      "description": "Bus or Metro per passenger km"
+    },
+    "domestic_flight": {
+      "factor": 0.12,
+      "unit": "kg CO2 / km per passenger",
+      "avg_distance_km": 1000,
+      "description": "Domestic flight, avg distance 1000 km"
+    },
+    "international_flight": {
+      "factor": 0.11,
+      "unit": "kg CO2 / km per passenger",
+      "avg_distance_km": 4000,
+      "description": "International flight, avg distance 4000 km"
+    }
+  },
+  "food": {
+    "heavy_meat": {
+      "factor": 2.5,
+      "unit": "kg CO2 / day",
+      "description": "Heavy meat diet"
+    },
+    "low_meat": {
+      "factor": 1.5,
+      "unit": "kg CO2 / day",
+      "description": "Low meat diet"
+    },
+    "vegetarian": {
+      "factor": 1.0,
+      "unit": "kg CO2 / day",
+      "description": "Vegetarian diet"
+    },
+    "vegan": {
+      "factor": 0.7,
+      "unit": "kg CO2 / day",
+      "description": "Vegan diet"
+    }
+  },
+  "home_energy": {
+    "grid_electricity": {
+      "factor": 0.82,
+      "unit": "kg CO2 / kWh",
+      "description": "Indian grid electricity emission factor (CEA)"
+    },
+    "lpg_cooking": {
+      "factor_per_kg": 2.99,
+      "unit": "kg CO2 / kg of LPG",
+      "cylinder_weight_kg": 14.2,
+      "co2_per_cylinder": 42.458,
+      "description": "Standard 14.2 kg LPG cylinder"
+    }
+  },
+  "shopping": {
+    "ecommerce_delivery": {
+      "factor": 0.35,
+      "unit": "kg CO2 / delivery",
+      "description": "Online delivery including packaging"
+    },
+    "fast_fashion": {
+      "factor": 12.5,
+      "unit": "kg CO2 / garment",
+      "description": "Fast fashion item lifecycle"
+    }
+  },
+  "digital": {
+    "video_streaming": {
+      "factor": 0.05,
+      "unit": "kg CO2 / hour",
+      "description": "Video streaming carbon intensity"
+    },
+    "cloud_storage": {
+      "factor": 0.001,
+      "unit": "kg CO2 / GB / year",
+      "description": "Cloud storage annual footprint"
+    }
+  },
+  "benchmarks": {
+    "urban_india_avg_annual_kg": 1750,
+    "global_avg_annual_kg": 4000,
+    "us_avg_annual_kg": 15000,
+    "net_zero_target_2030_kg": 1200,
+    "green_tier_max_kg": 1500,
+    "yellow_tier_max_kg": 3000,
+    "orange_tier_max_kg": 6000
+  },
+  "equivalencies": {
+    "delhi_mumbai_drive_kg": 240,
+    "tree_year_absorption_kg": 20,
+    "avg_indian_household_monthly_kg": 100
+  },
+  "financial": {
+    "electricity_cost_per_unit_inr": 7.5,
+    "fuel_cost_per_km_inr": 10,
+    "carbon_credit_per_ton_inr": 500
+  }
+}

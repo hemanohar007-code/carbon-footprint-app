@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarbonMirror &ndash; India&apos;s Carbon Footprint Awareness Platform</title>
+  <meta name="description" content="Calculate your personal carbon footprint, get AI-powered nudges, earn badges, and join thousands of urban Indians building a net-zero future." />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://generativelanguage.googleapis.com; img-src 'self' data: blob:; worker-src 'none'; object-src 'none';" />
+  <meta property="og:title" content="CarbonMirror" />
+  <meta property="og:description" content="Make your invisible carbon footprint viscerally real." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header" role="banner">
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="brand-icon" aria-hidden="true">🌍</span>
+      <div class="brand-text">
+        <h1>CarbonMirror</h1>
+        <p class="tagline">India&apos;s Carbon Awareness Platform</p>
+      </div>
+    </div>
+    <div class="api-key-panel" id="api-key-panel" role="region" aria-label="Gemini API Key Configuration">
+      <label for="api-key-input">Gemini API Key</label>
+      <input type="password" id="api-key-input" class="input-api-key" placeholder="Paste your Gemini API key&hellip;" tabindex="0" autocomplete="off" aria-describedby="api-key-status" aria-label="Gemini API key input" />
+      <button id="btn-api-save" class="btn btn-primary btn-sm" aria-label="Save API key">Save</button>
+      <button id="btn-api-clear" class="btn btn-danger btn-sm" aria-label="Clear API key">Clear</button>
+      <span id="api-key-status" class="api-key-status">&#x26A0;&#xFE0F; No API key configured</span>
+      <button id="btn-theme-toggle" class="btn btn-secondary btn-sm" aria-label="Toggle theme" title="Toggle Light/Dark Mode" style="margin-left: 8px; border-radius: 99px; padding: 4px 10px;">☀️</button>
+    </div>
+  </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="app-nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-tabs" role="tablist" aria-label="App views">
+    <button class="nav-tab nav-tab--active" data-nav="calculator" role="tab" aria-selected="true" tabindex="0" aria-controls="section-calculator">&#x1F9EE; Calculator</button>
+    <button class="nav-tab" data-nav="results" role="tab" aria-selected="false" tabindex="0" aria-controls="section-results">&#x1F4CA; Results</button>
+    <button class="nav-tab" data-nav="nudge" role="tab" aria-selected="false" tabindex="0" aria-controls="section-nudge">&#x1F50D; Decision Scanner</button>
+    <button class="nav-tab" data-nav="challenges" role="tab" aria-selected="false" tabindex="0" aria-controls="section-challenges">&#x1F3C6; Challenges</button>
+    <button class="nav-tab" data-nav="roadmap" role="tab" aria-selected="false" tabindex="0" aria-controls="section-roadmap">&#x1F5FA;&#xFE0F; Roadmap</button>
+    <button class="nav-tab" data-nav="leaderboard" role="tab" aria-selected="false" tabindex="0" aria-controls="section-leaderboard">&#x1F4C8; Leaderboard</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="app-main" role="main">
+  <div class="app-wrapper">
+
+    <!-- VIEW: CALCULATOR -->
+    <section id="section-calculator" class="view-section" aria-label="Carbon calculator" role="tabpanel">
+      <div class="calculator-layout">
+
+        <!-- Sidebar -->
+        <aside class="calculator-sidebar">
+          <div class="planet-hero">
+            <canvas id="planet-canvas" width="300" height="300" aria-label="Carbon planet visualization" role="img"></canvas>
+            <p class="planet-label">Your Carbon Planet</p>
+            <p class="live-summary" id="live-summary" aria-live="polite" aria-atomic="true"></p>
+          </div>
+          <div class="card info-card">
+            <p class="card-title">&#x1F331; About CarbonMirror</p>
+            <p class="info-text">Verified Indian emission factors from <strong>CEA, MoEFCC &amp; IEA</strong> across transport, food, energy, shopping, and digital.</p>
+            <div class="info-stats">
+              <div class="info-stat"><span class="info-stat-val green">~1,750 kg</span><span class="info-stat-lbl">India avg/yr</span></div>
+              <div class="info-stat"><span class="info-stat-val">4,000 kg</span><span class="info-stat-lbl">Global avg/yr</span></div>
+              <div class="info-stat"><span class="info-stat-val green">1,200 kg</span><span class="info-stat-lbl">Net-zero target</span></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Form -->
+        <div class="calc-form-col">
+          <div class="section-header">
+            <h2>Calculate Your Carbon Footprint</h2>
+            <p>Drag the sliders to see your annual CO&#x2082; impact update in real time.</p>
+          </div>
+
+          <form id="calculator-form" novalidate aria-label="Carbon footprint calculator">
+
+            <!-- 1. TRANSPORT -->
+            <div class="calc-section" aria-labelledby="section-transport-title">
+              <div class="calc-section-header">
+                <span class="calc-section-icon" aria-hidden="true">&#x1F697;</span>
+                <h3 class="calc-section-title" id="section-transport-title">Transport</h3>
+              </div>
+
+              <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label" for="input-vehicle-type">Primary commute vehicle</label>
+                <select id="input-vehicle-type" class="form-select" tabindex="0" aria-required="true">
+                  <option value="bus_metro">&#x1F687; Metro / Bus (public transit)</option>
+                  <option value="two_wheeler">&#x1F6F5; Two-Wheeler (Petrol)</option>
+                  <option value="petrol_car">&#x1F697; Petrol Car</option>
+                  <option value="diesel_car">&#x1F699; Diesel Car</option>
+                  <option value="electric_vehicle">&#x26A1; Electric Vehicle / E-Scooter</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-daily-km">Daily commute distance</label>
+                    <span class="slider-value-badge" id="val-daily-km">0 km/day</span>
+                  </div>
+                  <input type="range" id="input-daily-km" class="form-slider" min="0" max="150" step="1" value="0" tabindex="0" />
+                  <span class="form-hint">0 &#x2192; 150 km/day (one-way + return)</span>
+                </div>
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-domestic-flights">Domestic flights / year</label>
+                    <span class="slider-value-badge" id="val-domestic-flights">0 flights</span>
+                  </div>
+                  <input type="range" id="input-domestic-flights" class="form-slider" min="0" max="30" step="1" value="0" tabindex="0" />
+                  <span class="form-hint">0 &#x2192; 30 one-way flights (avg. 1,000 km)</span>
+                </div>
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-intl-flights">International flights / year</label>
+                    <span class="slider-value-badge" id="val-intl-flights">0 flights</span>
+                  </div>
+                  <input type="range" id="input-intl-flights" class="form-slider" min="0" max="15" step="1" value="0" tabindex="0" />
+                  <span class="form-hint">0 &#x2192; 15 one-way flights (avg. 4,000 km)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. FOOD -->
+            <div class="calc-section mt-lg" aria-labelledby="section-food-title">
+              <div class="calc-section-header">
+                <span class="calc-section-icon" aria-hidden="true">&#x1F35B;</span>
+                <h3 class="calc-section-title" id="section-food-title">Food</h3>
+              </div>
+              <label class="form-label" style="display:block;margin-bottom:12px">Diet type</label>
+              <div class="diet-selector" role="radiogroup" aria-label="Diet type" id="diet-selector">
+                <label class="diet-option">
+                  <input type="radio" name="diet_type" value="vegan" class="diet-radio" />
+                  <span class="diet-icon">&#x1F966;</span>
+                  <span class="diet-name">Vegan</span>
+                  <span class="diet-co2">0.7 kg/day</span>
+                </label>
+                <label class="diet-option">
+                  <input type="radio" name="diet_type" value="vegetarian" class="diet-radio" checked />
+                  <span class="diet-icon">&#x1F957;</span>
+                  <span class="diet-name">Vegetarian</span>
+                  <span class="diet-co2">1.0 kg/day</span>
+                </label>
+                <label class="diet-option">
+                  <input type="radio" name="diet_type" value="low_meat" class="diet-radio" />
+                  <span class="diet-icon">&#x1F414;</span>
+                  <span class="diet-name">Low Meat</span>
+                  <span class="diet-co2">1.5 kg/day</span>
+                </label>
+                <label class="diet-option">
+                  <input type="radio" name="diet_type" value="heavy_meat" class="diet-radio" />
+                  <span class="diet-icon">&#x1F969;</span>
+                  <span class="diet-name">Heavy Meat</span>
+                  <span class="diet-co2">2.5 kg/day</span>
+                </label>
+              </div>
+              <select id="input-diet-type" class="sr-only" aria-hidden="true" tabindex="-1">
+                <option value="vegan">Vegan</option>
+                <option value="vegetarian" selected>Vegetarian</option>
+                <option value="low_meat">Low Meat</option>
+                <option value="heavy_meat">Heavy Meat</option>
+              </select>
+            </div>
+
+            <!-- 3. HOME ENERGY -->
+            <div class="calc-section mt-lg" aria-labelledby="section-home-title">
+              <div class="calc-section-header">
+                <span class="calc-section-icon" aria-hidden="true">&#x1F3E0;</span>
+                <h3 class="calc-section-title" id="section-home-title">Home Energy</h3>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-electricity">Electricity (kWh/month)</label>
+                    <span class="slider-value-badge" id="val-electricity">0 kWh</span>
+                  </div>
+                  <input type="range" id="input-electricity" class="form-slider" min="0" max="600" step="5" value="0" tabindex="0" />
+                  <span class="form-hint">India avg: ~100 kWh/month</span>
+                </div>
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-lpg">LPG cylinders / month</label>
+                    <span class="slider-value-badge" id="val-lpg">0 cyl</span>
+                  </div>
+                  <input type="range" id="input-lpg" class="form-slider" min="0" max="5" step="0.5" value="0" tabindex="0" />
+                  <span class="form-hint">14.2 kg cylinder = 42.5 kg CO&#x2082;</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. SHOPPING -->
+            <div class="calc-section mt-lg" aria-labelledby="section-shopping-title">
+              <div class="calc-section-header">
+                <span class="calc-section-icon" aria-hidden="true">&#x1F6CD;&#xFE0F;</span>
+                <h3 class="calc-section-title" id="section-shopping-title">Shopping</h3>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-deliveries">E-commerce deliveries / month</label>
+                    <span class="slider-value-badge" id="val-deliveries">0 orders</span>
+                  </div>
+                  <input type="range" id="input-deliveries" class="form-slider" min="0" max="60" step="1" value="0" tabindex="0" />
+                  <span class="form-hint">Amazon, Flipkart, Swiggy, Zomato etc.</span>
+                </div>
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-fashion">Fast-fashion items / year</label>
+                    <span class="slider-value-badge" id="val-fashion">0 items</span>
+                  </div>
+                  <input type="range" id="input-fashion" class="form-slider" min="0" max="100" step="1" value="0" tabindex="0" />
+                  <span class="form-hint">New garments (Zara, H&amp;M, Meesho hauls)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. DIGITAL -->
+            <div class="calc-section mt-lg" aria-labelledby="section-digital-title">
+              <div class="calc-section-header">
+                <span class="calc-section-icon" aria-hidden="true">&#x1F4F1;</span>
+                <h3 class="calc-section-title" id="section-digital-title">Digital</h3>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-streaming">Video streaming (hours/day)</label>
+                    <span class="slider-value-badge" id="val-streaming">0 hrs</span>
+                  </div>
+                  <input type="range" id="input-streaming" class="form-slider" min="0" max="16" step="0.5" value="0" tabindex="0" />
+                  <span class="form-hint">Netflix, YouTube, Hotstar, Reels etc.</span>
+                </div>
+                <div class="form-group">
+                  <div class="slider-label-row">
+                    <label class="form-label" for="input-cloud-storage">Cloud storage (GB)</label>
+                    <span class="slider-value-badge" id="val-cloud-storage">0 GB</span>
+                  </div>
+                  <input type="range" id="input-cloud-storage" class="form-slider" min="0" max="2000" step="5" value="0" tabindex="0" />
+                  <span class="form-hint">Google Drive, iCloud, Dropbox etc.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="mt-xl">
+              <button type="submit" id="btn-calculate" class="btn-submit" tabindex="0">
+                &#x1F30D; Calculate My Carbon Footprint
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: RESULTS -->
+    <section id="section-results" class="view-section" aria-label="Footprint results" role="tabpanel">
+
+      <div class="results-hero text-center">
+        <p style="font-size:0.875rem;color:var(--txt-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Your Annual Carbon Footprint</p>
+        <div class="results-score" id="result-total-kg" aria-live="polite" aria-atomic="true">&mdash;</div>
+        <p class="results-score-unit">kg CO&#x2082; / year</p>
+        <span class="tier-badge tier-badge--green" id="result-tier-label">&mdash;</span>
+        <p class="benchmark-diff" id="result-vs-india">&mdash;</p>
+      </div>
+
+      <div class="netzero-section card mb-lg">
+        <p class="card-title">&#x1F3AF; Net-Zero Progress (Target: 1,200 kg CO&#x2082;/yr by 2030)</p>
+        <div class="netzero-bar-track" role="progressbar" aria-label="Net-zero progress" aria-valuemin="0" aria-valuemax="100">
+          <div class="netzero-bar-fill" id="netzero-progress-bar" style="width:0%"></div>
+        </div>
+        <div class="netzero-labels">
+          <span>India Avg (1,750 kg)</span>
+          <span>Gap to target: <strong id="netzero-gap-kg">&mdash;</strong> kg</span>
+          <span>Net-Zero (1,200 kg)</span>
+        </div>
+      </div>
+
+      <div class="card mb-lg">
+        <p class="card-title">&#x1F4A1; What Does This Look Like?</p>
+        <div class="equiv-grid">
+          <div class="equiv-card">
+            <span class="equiv-icon">&#x1F697;</span>
+            <div class="equiv-value" id="equiv-drives">&mdash;</div>
+            <p class="equiv-label">Delhi &rarr; Mumbai drives</p>
+          </div>
+          <div class="equiv-card">
+            <span class="equiv-icon">&#x1F333;</span>
+            <div class="equiv-value" id="equiv-trees">&mdash;</div>
+            <p class="equiv-label">Trees to offset (1 yr)</p>
+          </div>
+          <div class="equiv-card">
+            <span class="equiv-icon">&#x1F3E0;</span>
+            <div class="equiv-value" id="equiv-home-months">&mdash;</div>
+            <p class="equiv-label">Indian home energy months</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <div class="card">
+          <p class="card-title">&#x1F4CA; Category Breakdown</p>
+          <div class="category-list">
+            <div class="category-item">
+              <div class="category-header"><span class="category-name">&#x1F697; Transport</span><div class="category-stats"><span id="cat-transport-kg">&mdash;</span> kg <span id="cat-transport-pct">&mdash;</span></div></div>
+              <div class="bar-track" role="progressbar" aria-label="Transport emissions" aria-valuemin="0" aria-valuemax="100"><div class="bar-fill bar-fill--transport" id="cat-transport-bar" style="width:0%"></div></div>
+            </div>
+            <div class="category-item">
+              <div class="category-header"><span class="category-name">&#x1F35B; Food</span><div class="category-stats"><span id="cat-food-kg">&mdash;</span> kg <span id="cat-food-pct">&mdash;</span></div></div>
+              <div class="bar-track" role="progressbar" aria-label="Food emissions" aria-valuemin="0" aria-valuemax="100"><div class="bar-fill bar-fill--food" id="cat-food-bar" style="width:0%"></div></div>
+            </div>
+            <div class="category-item">
+              <div class="category-header"><span class="category-name">&#x1F3E0; Home Energy</span><div class="category-stats"><span id="cat-home-kg">&mdash;</span> kg <span id="cat-home-pct">&mdash;</span></div></div>
+              <div class="bar-track" role="progressbar" aria-label="Home energy emissions" aria-valuemin="0" aria-valuemax="100"><div class="bar-fill bar-fill--home" id="cat-home-bar" style="width:0%"></div></div>
+            </div>
+            <div class="category-item">
+              <div class="category-header"><span class="category-name">&#x1F6CD;&#xFE0F; Shopping</span><div class="category-stats"><span id="cat-shopping-kg">&mdash;</span> kg <span id="cat-shopping-pct">&mdash;</span></div></div>
+              <div class="bar-track" role="progressbar" aria-label="Shopping emissions" aria-valuemin="0" aria-valuemax="100"><div class="bar-fill bar-fill--shopping" id="cat-shopping-bar" style="width:0%"></div></div>
+            </div>
+            <div class="category-item">
+              <div class="category-header"><span class="category-name">&#x1F4F1; Digital</span><div class="category-stats"><span id="cat-digital-kg">&mdash;</span> kg <span id="cat-digital-pct">&mdash;</span></div></div>
+              <div class="bar-track" role="progressbar" aria-label="Digital emissions" aria-valuemin="0" aria-valuemax="100"><div class="bar-fill bar-fill--digital" id="cat-digital-bar" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">&#x1F3C5; Your Badges</p>
+          <div class="badges-grid" id="badges-grid" aria-label="Earned and locked badges"></div>
+        </div>
+      </div>
+
+      <div class="card mt-xl">
+        <p class="card-title">&#x1F6E3;&#xFE0F; Your Personalised Action Roadmap</p>
+        <p style="font-size:0.875rem;margin-bottom:16px">Top actions ranked by CO&#x2082; impact for your specific profile.</p>
+        <div id="roadmap-list" class="roadmap-list" aria-label="Recommended carbon reduction actions"></div>
+      </div>
+
+      <div class="share-section mt-xl">
+        <div class="card">
+          <p class="card-title">&#x1F4E4; Share Your Footprint</p>
+          <p style="font-size:0.875rem;margin-bottom:16px">Download or share your personalised carbon card.</p>
+          <div class="share-canvas-wrap">
+            <canvas id="share-canvas" aria-label="Carbon footprint share card preview"></canvas>
+          </div>
+          <div class="share-actions">
+            <button id="btn-download-card" class="btn btn-primary" tabindex="0">&#x2B07;&#xFE0F; Download PNG</button>
+            <button id="btn-share-card" class="btn btn-secondary" tabindex="0">&#x1F4E4; Share</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW: DECISION SCANNER -->
+    <section id="section-nudge" class="view-section" aria-label="Decision scanner" role="tabpanel">
+      <div class="section-header">
+        <h2>&#x1F50D; Decision Scanner</h2>
+        <p>Describe a planned activity and get an instant AI-powered carbon impact analysis with greener alternatives.</p>
+      </div>
+      <div class="nudge-layout">
+        <div class="nudge-input-area">
+          <div class="card">
+            <p class="card-title">&#x1F4DD; What are you planning to do?</p>
+            <textarea id="nudge-input" class="nudge-textarea" placeholder="e.g. ordering a mutton biryani on Swiggy, booking a flight to Goa, buying a new pair of jeans&hellip;" tabindex="0" aria-label="Describe your planned activity" maxlength="500"></textarea>
+            <p class="form-hint mt-lg">Requires a Gemini API key configured in the header above.</p>
+            <button id="btn-nudge-scan" class="btn btn-primary mt-lg" tabindex="0" style="width:100%">&#x1F50D; Analyse Carbon Impact</button>
+          </div>
+          <div class="card">
+            <p class="card-title" style="font-size:0.875rem">&#x1F4AC; Try these examples</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+              <li><button class="btn btn-secondary btn-sm" onclick="document.getElementById('nudge-input').value='Ordering mutton biryani and naan on Swiggy'" tabindex="0">&#x1F35B; Ordering mutton biryani</button></li>
+              <li><button class="btn btn-secondary btn-sm" onclick="document.getElementById('nudge-input').value='Booking a weekend flight from Mumbai to Goa'" tabindex="0">&#x2708;&#xFE0F; Flight to Goa</button></li>
+              <li><button class="btn btn-secondary btn-sm" onclick="document.getElementById('nudge-input').value='Buying 3 new T-shirts from H&amp;M'" tabindex="0">&#x1F455; Buying fast fashion</button></li>
+              <li><button class="btn btn-secondary btn-sm" onclick="document.getElementById('nudge-input').value='Watching Netflix for 5 hours'" tabindex="0">&#x1F4FA; 5 hours of Netflix</button></li>
+              <li><button class="btn btn-secondary btn-sm" onclick="document.getElementById('nudge-input').value='Driving 40km by car to meet a friend'" tabindex="0">&#x1F697; Driving 40 km</button></li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <p class="card-title">&#x1F916; AI Carbon Analysis</p>
+            <div id="nudge-result-panel" aria-live="polite" aria-atomic="true">
+              <p style="color:var(--txt-muted);font-style:italic">Enter an activity above and click Analyse to see your real-time carbon impact.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: CHALLENGES -->
+    <section id="section-challenges" class="view-section" aria-label="Challenges and streaks" role="tabpanel">
+      <div class="section-header">
+        <h2>&#x1F3C6; Challenges &amp; Streaks</h2>
+        <p>Join gamified challenges, build daily check-in streaks, and earn bonus badges.</p>
+      </div>
+
+      <div class="streak-panel" aria-label="Streak statistics">
+        <div class="streak-card">
+          <div class="streak-value" id="streak-current" aria-label="Current streak">0</div>
+          <p class="streak-label">&#x1F525; Current Streak (days)</p>
+        </div>
+        <div class="streak-card">
+          <div class="streak-value" id="streak-longest" aria-label="Longest streak">0</div>
+          <p class="streak-label">&#x1F3C6; Longest Streak (days)</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:var(--space-xl)">
+        <button id="btn-checkin" class="btn btn-primary" tabindex="0">&#x1F331; Check In Today</button>
+      </div>
+
+      <div class="challenges-grid">
+        <div class="challenge-card" aria-labelledby="challenge-name-waste_minimization_7">
+          <div class="challenge-card-header">
+            <span class="challenge-icon" aria-hidden="true">&#x267B;&#xFE0F;</span>
+            <div>
+              <p class="challenge-name" id="challenge-name-waste_minimization_7">7-Day Waste Minimization</p>
+              <p class="challenge-desc">Eliminate single-use plastics and reduce household waste for 7 consecutive days.</p>
+            </div>
+          </div>
+          <p class="challenge-status" id="challenge-status-waste_minimization_7">Not started</p>
+          <div class="challenge-progress-track" role="progressbar" aria-label="7-day waste challenge progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="challenge-progress-fill" id="challenge-progress-waste_minimization_7" style="width:0%"></div>
+          </div>
+          <div class="challenge-actions">
+            <button id="challenge-start-waste_minimization_7" class="btn btn-primary btn-sm" tabindex="0">&#x25B6; Start Challenge</button>
+            <button id="challenge-check-waste_minimization_7" class="btn btn-secondary btn-sm" style="display:none" tabindex="0">&#x2705; Log Today</button>
+          </div>
+        </div>
+
+        <div class="challenge-card" aria-labelledby="challenge-name-commute_swap_30">
+          <div class="challenge-card-header">
+            <span class="challenge-icon" aria-hidden="true">&#x1F687;</span>
+            <div>
+              <p class="challenge-name" id="challenge-name-commute_swap_30">30-Day Commute Swap</p>
+              <p class="challenge-desc">Replace your regular vehicle commute with public transit or cycling for 30 days.</p>
+            </div>
+          </div>
+          <p class="challenge-status" id="challenge-status-commute_swap_30">Not started</p>
+          <div class="challenge-progress-track" role="progressbar" aria-label="30-day commute swap progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="challenge-progress-fill" id="challenge-progress-commute_swap_30" style="width:0%"></div>
+          </div>
+          <div class="challenge-actions">
+            <button id="challenge-start-commute_swap_30" class="btn btn-primary btn-sm" tabindex="0">&#x25B6; Start Challenge</button>
+            <button id="challenge-check-commute_swap_30" class="btn btn-secondary btn-sm" style="display:none" tabindex="0">&#x2705; Log Today</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: NET-ZERO ROADMAP -->
+    <section id="section-roadmap" class="view-section" aria-label="Net-zero journey roadmap" role="tabpanel">
+      <div class="section-header">
+        <h2>&#x1F5FA;&#xFE0F; Your Net-Zero Journey</h2>
+        <p>5 milestones from India&apos;s average (1,750 kg/yr) to the net-zero target (1,200 kg/yr). Each milestone earns a badge.</p>
+      </div>
+
+      <!-- Journey progress card -->
+      <div class="card roadmap-hero-card mb-lg">
+        <div class="roadmap-hero-inner">
+          <div class="roadmap-hero-score-block">
+            <p class="roadmap-hero-label">Your Footprint</p>
+            <p class="roadmap-hero-score" id="rm-current-kg">&mdash;</p>
+            <p class="roadmap-hero-unit">kg CO&#x2082;/yr</p>
+          </div>
+          <div class="roadmap-hero-arrow">&#x2192;</div>
+          <div class="roadmap-hero-score-block">
+            <p class="roadmap-hero-label">Net-Zero Target</p>
+            <p class="roadmap-hero-score" style="color:var(--tier-green)">1,200</p>
+            <p class="roadmap-hero-unit">kg CO&#x2082;/yr</p>
+          </div>
+        </div>
+        <div class="roadmap-master-wrap">
+          <div class="roadmap-master-track" role="progressbar" aria-label="Journey progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="roadmap-master-fill" id="rm-master-fill" style="width:0%"></div>
+            <div class="rm-tick" style="left:20%"><div class="rm-tick-dot" id="rm-tick-1"></div><span class="rm-tick-label">M1</span></div>
+            <div class="rm-tick" style="left:40%"><div class="rm-tick-dot" id="rm-tick-2"></div><span class="rm-tick-label">M2</span></div>
+            <div class="rm-tick" style="left:60%"><div class="rm-tick-dot" id="rm-tick-3"></div><span class="rm-tick-label">M3</span></div>
+            <div class="rm-tick" style="left:80%"><div class="rm-tick-dot" id="rm-tick-4"></div><span class="rm-tick-label">M4</span></div>
+            <div class="rm-tick" style="left:100%"><div class="rm-tick-dot" id="rm-tick-5"></div><span class="rm-tick-label">&#x1F3C6;</span></div>
+          </div>
+        </div>
+        <p id="rm-hint-text" style="font-size:0.8rem;color:var(--txt-muted);margin-top:8px;text-align:center">Calculate your footprint to see your progress on the roadmap.</p>
+      </div>
+
+      <!-- Milestones -->
+      <div class="milestones-list" id="milestones-list" aria-label="Net-zero milestones">
+
+        <div class="milestone-card" id="milestone-card-1" data-threshold="1650">
+          <div class="milestone-left">
+            <div class="milestone-badge-icon" id="milestone-badge-1">&#x1F33F;</div>
+            <div class="milestone-connector" id="milestone-connector-1"></div>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-header-row">
+              <div>
+                <p class="milestone-number">Milestone 1</p>
+                <h3 class="milestone-title">Conscious Starter</h3>
+                <p class="milestone-threshold">Reach &le; 1,650 kg CO&#x2082;/yr</p>
+              </div>
+              <span class="milestone-status-pill" id="milestone-status-1">&#x1F512; Locked</span>
+            </div>
+            <p class="milestone-desc">You&apos;ve started your journey. Small daily choices &mdash; fewer deliveries, a shorter commute, skipping one flight &mdash; add up to your first 100 kg cut. Every action is registered on your Carbon Planet.</p>
+            <div class="milestone-actions-list">
+              <div class="milestone-action-chip">&#x1F687; Take metro 3 days/week</div>
+              <div class="milestone-action-chip">&#x1F4E6; Cut deliveries to &lt;5/month</div>
+              <div class="milestone-action-chip">&#x1F4A1; Switch to LED bulbs</div>
+            </div>
+            <div class="milestone-reward">
+              <span class="milestone-badge-pill">&#x1F3C5; Earns: <strong>Conscious Starter</strong> badge</span>
+              <span class="milestone-co2-chip">Saves ~100 kg CO&#x2082;/yr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="milestone-card" id="milestone-card-2" data-threshold="1500">
+          <div class="milestone-left">
+            <div class="milestone-badge-icon" id="milestone-badge-2">&#x1F331;</div>
+            <div class="milestone-connector" id="milestone-connector-2"></div>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-header-row">
+              <div>
+                <p class="milestone-number">Milestone 2</p>
+                <h3 class="milestone-title">Green Zone Entry</h3>
+                <p class="milestone-threshold">Reach &le; 1,500 kg CO&#x2082;/yr</p>
+              </div>
+              <span class="milestone-status-pill" id="milestone-status-2">&#x1F512; Locked</span>
+            </div>
+            <p class="milestone-desc">You&apos;ve entered the Green Zone &mdash; below 1,500 kg. Your planet visualization glows healthy blue-green. You&apos;re now significantly cleaner than the Indian average.</p>
+            <div class="milestone-actions-list">
+              <div class="milestone-action-chip">&#x1F957; Go vegetarian 5 days/week</div>
+              <div class="milestone-action-chip">&#x1F6BF; Shorter showers, cold wash</div>
+              <div class="milestone-action-chip">&#x1F6F5; E-scooter for short trips</div>
+            </div>
+            <div class="milestone-reward">
+              <span class="milestone-badge-pill">&#x1F3C5; Earns: <strong>Green Zone Pioneer</strong> badge</span>
+              <span class="milestone-co2-chip">Saves ~150 kg CO&#x2082;/yr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="milestone-card" id="milestone-card-3" data-threshold="1400">
+          <div class="milestone-left">
+            <div class="milestone-badge-icon" id="milestone-badge-3">&#x1F30D;</div>
+            <div class="milestone-connector" id="milestone-connector-3"></div>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-header-row">
+              <div>
+                <p class="milestone-number">Milestone 3</p>
+                <h3 class="milestone-title">Climate Conscious</h3>
+                <p class="milestone-threshold">Reach &le; 1,400 kg CO&#x2082;/yr</p>
+              </div>
+              <span class="milestone-status-pill" id="milestone-status-3">&#x1F512; Locked</span>
+            </div>
+            <p class="milestone-desc">Halfway to net-zero. Your lifestyle changes are now measurable in rupee savings too. You&apos;re among the top 10% of climate-conscious Indians.</p>
+            <div class="milestone-actions-list">
+              <div class="milestone-action-chip">&#x2708;&#xFE0F; Skip one domestic flight</div>
+              <div class="milestone-action-chip">&#x26A1; Install solar water heater</div>
+              <div class="milestone-action-chip">&#x1F457; Buy 50% fewer fast-fashion items</div>
+            </div>
+            <div class="milestone-reward">
+              <span class="milestone-badge-pill">&#x1F3C5; Earns: <strong>Climate Conscious</strong> badge</span>
+              <span class="milestone-co2-chip">Saves ~100 kg CO&#x2082;/yr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="milestone-card" id="milestone-card-4" data-threshold="1300">
+          <div class="milestone-left">
+            <div class="milestone-badge-icon" id="milestone-badge-4">&#x1F333;</div>
+            <div class="milestone-connector" id="milestone-connector-4"></div>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-header-row">
+              <div>
+                <p class="milestone-number">Milestone 4</p>
+                <h3 class="milestone-title">Carbon Minimalist</h3>
+                <p class="milestone-threshold">Reach &le; 1,300 kg CO&#x2082;/yr</p>
+              </div>
+              <span class="milestone-status-pill" id="milestone-status-4">&#x1F512; Locked</span>
+            </div>
+            <p class="milestone-desc">Your footprint is just 75% of India&apos;s average. Equivalent to planting 25 trees every year &mdash; purely by how you live.</p>
+            <div class="milestone-actions-list">
+              <div class="milestone-action-chip">&#x1F50C; Switch to EV or cycle</div>
+              <div class="milestone-action-chip">&#x1F966; Mostly vegetarian / vegan</div>
+              <div class="milestone-action-chip">&#x1F4FA; Cut streaming to &lt;2 hrs/day</div>
+            </div>
+            <div class="milestone-reward">
+              <span class="milestone-badge-pill">&#x1F3C5; Earns: <strong>Carbon Minimalist</strong> badge</span>
+              <span class="milestone-co2-chip">Saves ~100 kg CO&#x2082;/yr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="milestone-card milestone-card--final" id="milestone-card-5" data-threshold="1200">
+          <div class="milestone-left">
+            <div class="milestone-badge-icon milestone-badge-icon--final" id="milestone-badge-5">&#x1F3C6;</div>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-header-row">
+              <div>
+                <p class="milestone-number">Milestone 5 &mdash; Final</p>
+                <h3 class="milestone-title">Net-Zero Champion</h3>
+                <p class="milestone-threshold">Reach &le; 1,200 kg CO&#x2082;/yr</p>
+              </div>
+              <span class="milestone-status-pill" id="milestone-status-5">&#x1F512; Locked</span>
+            </div>
+            <p class="milestone-desc">You&apos;ve reached India&apos;s 2030 net-zero target. Your carbon mirror shows a planet as healthy as it can be. You&apos;re not just reducing emissions &mdash; you&apos;re leading a generation.</p>
+            <div class="milestone-actions-list">
+              <div class="milestone-action-chip">&#x1F333; Plant 5 trees/year via NGO</div>
+              <div class="milestone-action-chip">&#x2600;&#xFE0F; Solar panel or green energy</div>
+              <div class="milestone-action-chip">&#x1F331; Share your journey publicly</div>
+            </div>
+            <div class="milestone-reward">
+              <span class="milestone-badge-pill milestone-badge-pill--gold">&#x1F3C6; Earns: <strong>Net-Zero Champion</strong> badge</span>
+              <span class="milestone-co2-chip">India&apos;s 2030 target achieved!</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card mt-xl">
+        <p class="card-title">&#x1F396;&#xFE0F; Roadmap Badges</p>
+        <p style="font-size:0.875rem;margin-bottom:16px">Automatically awarded as you lower your footprint and recalculate.</p>
+        <div class="badges-grid" id="roadmap-badges-grid" aria-label="Roadmap milestone badges"></div>
+      </div>
+
+    </section>
+
+    <!-- VIEW: LEADERBOARD -->
+    <section id="section-leaderboard" class="view-section" aria-label="Peer leaderboard" role="tabpanel">
+      <div class="section-header">
+        <h2>&#x1F4C8; Peer Leaderboard</h2>
+        <p>See how your footprint compares against your simulated urban Indian peer group (lowest CO&#x2082; = #1).</p>
+      </div>
+      <div class="user-rank-banner" id="user-rank-text" aria-live="polite">Complete the calculator to see your rank.</div>
+      <div class="card leaderboard-table-wrap">
+        <table class="leaderboard-table" aria-label="Carbon footprint peer leaderboard">
+          <thead>
+            <tr>
+              <th scope="col">Rank</th>
+              <th scope="col">Name</th>
+              <th scope="col">Footprint</th>
+              <th scope="col">Relative Impact</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody"></tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-lg" style="font-size:0.8rem">* Peer profiles are simulated using calibrated urban Indian footprint distributions (800&ndash;3,500 kg CO&#x2082;/yr).</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer" role="contentinfo">
+  <div class="app-wrapper">
+    <p class="footer-privacy">
+      <strong>&#x1F512; Privacy Notice:</strong> All carbon input data, calculations, and API keys are processed entirely within your browser&apos;s local sandbox. No personal data is transmitted to any server. API keys are stored in session memory only and cleared when you close this tab. Emission factors sourced from CEA, MoEFCC &amp; IEA 2023.
+    </p>
+  </div>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

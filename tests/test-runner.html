@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarbonMirror – Test Runner</title>
+  <meta name="description" content="Self-executing browser test dashboard for CarbonMirror" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>" />
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0c0a06;
+      --bg2: #141008;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.10);
+      --text: #f0e8d0;
+      --muted: rgba(240,232,208,0.5);
+      --pass: #22c55e;
+      --fail: #ef4444;
+      --accent: #2ecc71;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(46,204,113,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .runner-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .runner-header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #52e090, #2ecc71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .runner-header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Dashboard card */
+    .dashboard-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    .dashboard-total {
+      font-size: 4rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .dashboard-total.all-pass { color: var(--pass); }
+    .dashboard-total.has-fail { color: var(--fail); }
+    .dashboard-total.loading { color: var(--muted); }
+
+    .dashboard-label {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .dashboard-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-value.pass { color: var(--pass); }
+    .stat-value.fail { color: var(--fail); }
+    .stat-value.total { color: var(--text); }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Progress bar */
+    .progress-bar-track {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 24px 0 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--pass), #52e090);
+      transition: width 800ms cubic-bezier(0.22,1,0.36,1);
+    }
+
+    /* Suite blocks */
+    .suite-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .suite-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .suite-header:hover { background: rgba(255,255,255,0.03); }
+
+    .suite-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .suite-summary {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 99px;
+    }
+
+    .suite-summary.all-pass {
+      background: rgba(34,197,94,0.15);
+      color: var(--pass);
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+
+    .suite-summary.has-fail {
+      background: rgba(239,68,68,0.15);
+      color: var(--fail);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .suite-summary.loading {
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Test rows */
+    .test-list {
+      padding: 8px 0;
+    }
+
+    .test-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 8px 24px;
+      font-size: 0.875rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 150ms;
+    }
+
+    .test-row:last-child { border-bottom: none; }
+    .test-row:hover { background: rgba(255,255,255,0.03); }
+
+    .test-status {
+      font-size: 1rem;
+      min-width: 20px;
+      line-height: 1;
+    }
+
+    .test-name {
+      flex: 1;
+      color: var(--text);
+      opacity: 0.85;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    .test-error {
+      font-size: 0.75rem;
+      color: var(--fail);
+      font-family: var(--mono);
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 6px;
+      padding: 4px 8px;
+      margin-top: 4px;
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .test-row-inner { flex: 1; }
+
+    /* Loading spinner */
+    .loading-row {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(46,204,113,0.3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer note */
+    .runner-footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 32px;
+      line-height: 1.6;
+    }
+
+    .btn-rerun {
+      background: linear-gradient(135deg, #2ecc71, #1a9c50);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 12px 28px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: filter 150ms, transform 150ms;
+    }
+
+    .btn-rerun:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="runner-header">
+    <h1>🧪 CarbonMirror Test Runner</h1>
+    <p>Browser-native test suite – no build pipeline required</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-card" id="dashboard">
+    <div class="dashboard-total loading" id="dashboard-total">…</div>
+    <div class="dashboard-label" id="dashboard-label">Running tests…</div>
+    <div class="dashboard-stats">
+      <div class="stat">
+        <div class="stat-value pass" id="stat-pass">—</div>
+        <div class="stat-label">✅ Passed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value fail" id="stat-fail">—</div>
+        <div class="stat-label">❌ Failed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value total" id="stat-total">—</div>
+        <div class="stat-label">Total Tests</div>
+      </div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <button class="btn-rerun" onclick="location.reload()">↺ Re-run All Tests</button>
+  </div>
+
+  <!-- Suite: Calculator -->
+  <div class="suite-block" id="suite-calculator">
+    <div class="suite-header" onclick="toggleSuite('calculator-body')">
+      <div class="suite-title">🧮 Unit Tests — calculator.test.js</div>
+      <div class="suite-summary loading" id="suite-calculator-summary">Loading…</div>
+    </div>
+    <div id="calculator-body">
+      <div class="loading-row"><span class="spinner"></span> Running calculator tests…</div>
+    </div>
+  </div>
+
+  <!-- Suite: Nudge Engine -->
+  <div class="suite-block" id="suite-nudge">
+    <div class="suite-header" onclick="toggleSuite('nudge-body')">
+      <div class="suite-title">🔍 Integration Tests — nudge-engine.test.js</div>
+      <div class="suite-summary loading" id="suite-nudge-summary">Loading…</div>
+    </div>
+    <div id="nudge-body">
+      <div class="loading-row"><span class="spinner"></span> Running nudge engine tests…</div>
+    </div>
+  </div>
+
+  <!-- Suite: App -->
+  <div class="suite-block" id="suite-app">
+    <div class="suite-header" onclick="toggleSuite('app-body')">
+      <div class="suite-title">⚙️ Functional Tests — app.test.js</div>
+      <div class="suite-summary loading" id="suite-app-summary">Loading…</div>
+    </div>
+    <div id="app-body">
+      <div class="loading-row"><span class="spinner"></span> Running app tests…</div>
+    </div>
+  </div>
+
+  <div class="runner-footer">
+    <p>Tests run entirely in your browser — no server or build pipeline required.</p>
+    <p>All localStorage operations use an isolated test namespace. Production state is preserved.</p>
+  </div>
+
+</div>
+
+<script type="module">
+  // ── Test orchestration ──────────────────────────────────────────────────────
+
+  function toggleSuite(bodyId) {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    body.style.display = body.style.display === 'none' ? '' : '';
+  }
+
+  function renderSuiteResults(suiteName, results) {
+    const bodyId = suiteName + '-body';
+    const summaryId = 'suite-' + suiteName + '-summary';
+
+    const body = document.getElementById(bodyId);
+    const summary = document.getElementById(summaryId);
+    if (!body || !summary) return;
+
+    const passed = results.filter(r => r.status === 'pass').length;
+    const failed = results.filter(r => r.status === 'fail').length;
+    const total = results.length;
+
+    summary.textContent = `${passed}/${total} passed`;
+    summary.className = 'suite-summary ' + (failed > 0 ? 'has-fail' : 'all-pass');
+
+    const list = document.createElement('div');
+    list.className = 'test-list';
+
+    results.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'test-row';
+
+      const status = document.createElement('span');
+      status.className = 'test-status';
+      status.textContent = r.status === 'pass' ? '✅' : '❌';
+
+      const inner = document.createElement('div');
+      inner.className = 'test-row-inner';
+
+      const name = document.createElement('div');
+      name.className = 'test-name';
+      name.textContent = r.name;
+
+      inner.appendChild(name);
+
+      if (r.status === 'fail' && r.error) {
+        const err = document.createElement('span');
+        err.className = 'test-error';
+        err.textContent = r.error;
+        inner.appendChild(err);
+      }
+
+      row.appendChild(status);
+      row.appendChild(inner);
+      list.appendChild(row);
+    });
+
+    // Clear loading message and render results
+    while (body.firstChild) body.removeChild(body.firstChild);
+    body.appendChild(list);
+  }
+
+  function updateDashboard(allResults) {
+    const passed = allResults.filter(r => r.status === 'pass').length;
+    const failed = allResults.filter(r => r.status === 'fail').length;
+    const total = allResults.length;
+    const pct = total === 0 ? 0 : Math.round((passed / total) * 100);
+
+    const dashTotal = document.getElementById('dashboard-total');
+    const dashLabel = document.getElementById('dashboard-label');
+    const statPass = document.getElementById('stat-pass');
+    const statFail = document.getElementById('stat-fail');
+    const statTotal = document.getElementById('stat-total');
+    const progressFill = document.getElementById('progress-fill');
+
+    dashTotal.textContent = `${passed}/${total}`;
+    dashTotal.className = 'dashboard-total ' + (failed > 0 ? 'has-fail' : 'all-pass');
+    dashLabel.textContent = failed === 0
+      ? `🎉 All ${total} tests passed!`
+      : `⚠️ ${failed} test${failed > 1 ? 's' : ''} failed`;
+
+    statPass.textContent = passed;
+    statFail.textContent = failed;
+    statTotal.textContent = total;
+    progressFill.style.width = pct + '%';
+  }
+
+  // ── Run all test suites ─────────────────────────────────────────────────────
+  async function runAllSuites() {
+    const allResults = [];
+
+    try {
+      // Suite 1: Calculator
+      const calcModule = await import('./calculator.test.js');
+      const calcResults = calcModule.getTestResults();
+      renderSuiteResults('calculator', calcResults);
+      allResults.push(...calcResults);
+    } catch (err) {
+      renderSuiteResults('calculator', [{
+        name: 'Module load error',
+        status: 'fail',
+        error: String(err)
+      }]);
+    }
+
+    try {
+      // Suite 2: Nudge Engine
+      const nudgeModule = await import('./nudge-engine.test.js');
+      const nudgeResults = nudgeModule.getTestResults();
+      renderSuiteResults('nudge', nudgeResults);
+      allResults.push(...nudgeResults);
+    } catch (err) {
+      renderSuiteResults('nudge', [{
+        name: 'Module load error',
+        status: 'fail',
+        error: String(err)
+      }]);
+    }
+
+    try {
+      // Suite 3: App functional tests
+      const appModule = await import('./app.test.js');
+      const appResults = appModule.getTestResults();
+      renderSuiteResults('app', appResults);
+      allResults.push(...appResults);
+    } catch (err) {
+      renderSuiteResults('app', [{
+        name: 'Module load error',
+        status: 'fail',
+        error: String(err)
+      }]);
+    }
+
+    updateDashboard(allResults);
+  }
+
+  runAllSuites();
+</script>
+
+</body>
+</html>
