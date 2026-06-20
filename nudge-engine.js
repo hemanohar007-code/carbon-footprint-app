@@ -65,6 +65,11 @@ export function hasApiKey() {
 
 // ─── PROMPT BUILDER ───────────────────────────────────────────────────────────
 
+/**
+ * Builds the strict JSON prompt for the Gemini AI.
+ * @param {string} activityText - The user's planned activity.
+ * @returns {string} The formatted prompt string.
+ */
 function buildPrompt(activityText) {
   return `You are a carbon footprint analyst for urban Indian users aged 18-35.
 A user is planning to do: "${activityText}"

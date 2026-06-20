@@ -61,16 +61,28 @@ const AppState = {
 
 // ─── OBSERVER PATTERN ────────────────────────────────────────────────────────
 
+/**
+ * Subscribes a callback to AppState changes.
+ * @param {function} fn - The callback function.
+ */
 function subscribe(fn) {
   AppState._observers.push(fn);
 }
 
+/**
+ * Notifies all observers of a state change.
+ * @param {string} changedKey - The state key that changed.
+ */
 function notify(changedKey) {
   for (const fn of AppState._observers) {
     try { fn(changedKey, AppState); } catch { /* prevent one bad observer from halting others */ }
   }
 }
 
+/**
+ * Updates the centralized state and notifies observers.
+ * @param {object} partial - Partial state object to merge.
+ */
 function setState(partial) {
   Object.assign(AppState, partial);
   notify(Object.keys(partial)[0]);
@@ -78,18 +90,37 @@ function setState(partial) {
 
 // ─── DOM HELPERS ─────────────────────────────────────────────────────────────
 
+/**
+ * Shorthand for document.getElementById.
+ * @param {string} id - The DOM element ID.
+ * @returns {HTMLElement|null}
+ */
 function el(id) { return document.getElementById(id); }
 
+/**
+ * Safely sets textContent on a DOM element.
+ * @param {string} id - The DOM element ID.
+ * @param {string|number} text - The text to set.
+ */
 function setText(id, text) {
   const node = el(id);
   if (node) node.textContent = String(text);
 }
 
+/**
+ * Safely sets display style on a DOM element.
+ * @param {string} id - The DOM element ID.
+ * @param {boolean} show - Whether to show (true) or hide (false).
+ */
 function setDisplay(id, show) {
   const node = el(id);
   if (node) node.style.display = show ? '' : 'none';
 }
 
+/**
+ * Displays a specific view section and scrolls it into view.
+ * @param {string} id - The section element ID.
+ */
 function showSection(id) {
   document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
   const target = el(id);
@@ -99,6 +130,11 @@ function showSection(id) {
   }
 }
 
+/**
+ * Displays an ephemeral toast notification.
+ * @param {string} message - The message to display.
+ * @param {string} [type='info'] - The toast type ('info', 'success', 'error').
+ */
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast--${type}`;
@@ -115,6 +151,10 @@ function showToast(message, type = 'info') {
 
 // ─── VIEW NAVIGATION ─────────────────────────────────────────────────────────
 
+/**
+ * Navigates to a specific top-level view.
+ * @param {string} view - The view identifier (e.g. 'calculator', 'results').
+ */
 function navigateTo(view) {
   setState({ currentView: view });
 
@@ -985,7 +1025,28 @@ function init() {
     Viz.update('green', 0);
   }
 
-  // Bind nav tabs
+  bindNavigation();
+  bindCalculatorForm();
+  bindApiKeyPanel();
+  bindNudgeEngine();
+  bindGamification();
+  attachSliderBindings();
+  attachDietPillBindings();
+  attachLiveInputFeedback();
+
+  bindShareCard();
+  bindKeyboardEvents();
+  showInitialApiStatus();
+
+  // Show calculator by default
+  navigateTo('calculator');
+
+  console.log('[CarbonMirror] Application initialized.');
+}
+
+// ─── EVENT BINDING HELPERS ────────────────────────────────────────────────────
+
+function bindNavigation() {
   document.querySelectorAll('[data-nav]').forEach(btn => {
     btn.addEventListener('click', () => navigateTo(btn.dataset.nav));
     btn.addEventListener('keydown', e => {
@@ -995,56 +1056,47 @@ function init() {
       }
     });
   });
+}
 
-  // Bind calculator form
+function bindCalculatorForm() {
   const form = el('calculator-form');
   if (form) form.addEventListener('submit', handleCalculatorSubmit);
+}
 
-  // Bind API key panel
+function bindApiKeyPanel() {
   el('btn-api-save')?.addEventListener('click', handleApiKeySave);
   el('btn-api-clear')?.addEventListener('click', handleApiKeyClear);
+}
 
-  // Bind nudge engine
+function bindNudgeEngine() {
   el('btn-nudge-scan')?.addEventListener('click', handleNudgeScan);
   el('nudge-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleNudgeScan();
   });
+}
 
-  // Bind challenge buttons
+function bindGamification() {
   Object.keys(CHALLENGES).forEach(id => {
     el(`challenge-start-${id}`)?.addEventListener('click', () => handleStartChallenge(id));
     el(`challenge-check-${id}`)?.addEventListener('click', () => handleLogChallengeDay(id));
   });
-
-  // Bind check-in
   el('btn-checkin')?.addEventListener('click', handleCheckIn);
+}
 
-  // Bind sliders
-  attachSliderBindings();
-
-  // Bind diet pills
-  attachDietPillBindings();
-
-  // Bind share card
+function bindShareCard() {
   el('btn-download-card')?.addEventListener('click', handleDownloadCard);
   el('btn-share-card')?.addEventListener('click', handleShareCard);
+}
 
-  // Keyboard
+function bindKeyboardEvents() {
   document.addEventListener('keydown', handleGlobalKeydown);
+}
 
-  // Live input feedback (vehicle type dropdown)
-  attachLiveInputFeedback();
-
-  // Show initial API key status
+function showInitialApiStatus() {
   if (hasApiKey()) {
     setText('api-key-status', '✅ API key configured (session only)');
     el('api-key-status')?.classList.add('status--ok');
   }
-
-  // Default view
-  navigateTo('calculator');
-
-  console.log('[CarbonMirror] Application initialized.');
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────

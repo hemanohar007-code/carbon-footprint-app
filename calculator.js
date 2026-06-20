@@ -9,6 +9,9 @@
 
 'use strict';
 
+const DAYS_IN_YEAR = 365;
+const MONTHS_IN_YEAR = 12;
+
 // ─── EMISSION FACTORS ────────────────────────────────────────────────────────
 export const EMISSION_FACTORS = {
   transport: {
@@ -101,7 +104,7 @@ export function calculateTransport(transport) {
   const internationalFlights = sanitiseNumber(transport.international_flights);
 
   const factor = EMISSION_FACTORS.transport[vehicleType] ?? EMISSION_FACTORS.transport.bus_metro;
-  const annualCommuteKg = dailyKm * factor * 365;
+  const annualCommuteKg = dailyKm * factor * DAYS_IN_YEAR;
 
   const domesticFlightKg =
     domesticFlights *
@@ -135,7 +138,7 @@ export function calculateTransport(transport) {
 export function calculateFood(food) {
   const dietType = food.diet_type || 'vegetarian';
   const dailyKg = EMISSION_FACTORS.food[dietType] ?? EMISSION_FACTORS.food.vegetarian;
-  const annual_kg = dailyKg * 365;
+  const annual_kg = dailyKg * DAYS_IN_YEAR;
 
   return {
     annual_kg,
@@ -155,8 +158,8 @@ export function calculateHomeEnergy(home) {
   const monthlyKwh = sanitiseNumber(home.electricity_kwh_month);
   const monthlyCylinders = sanitiseNumber(home.lpg_cylinders_month);
 
-  const annualElectricityKg = monthlyKwh * 12 * EMISSION_FACTORS.home_energy.electricity;
-  const annualLpgKg = monthlyCylinders * 12 * EMISSION_FACTORS.home_energy.lpg_per_cylinder;
+  const annualElectricityKg = monthlyKwh * MONTHS_IN_YEAR * EMISSION_FACTORS.home_energy.electricity;
+  const annualLpgKg = monthlyCylinders * MONTHS_IN_YEAR * EMISSION_FACTORS.home_energy.lpg_per_cylinder;
 
   const annual_kg = annualElectricityKg + annualLpgKg;
 
@@ -181,7 +184,7 @@ export function calculateShopping(shopping) {
   const monthlyDeliveries = sanitiseNumber(shopping.deliveries_month);
   const yearlyFashion = sanitiseNumber(shopping.fashion_items_year);
 
-  const deliveryKg = monthlyDeliveries * 12 * EMISSION_FACTORS.shopping.ecommerce_delivery;
+  const deliveryKg = monthlyDeliveries * MONTHS_IN_YEAR * EMISSION_FACTORS.shopping.ecommerce_delivery;
   const fashionKg = yearlyFashion * EMISSION_FACTORS.shopping.fast_fashion;
 
   const annual_kg = deliveryKg + fashionKg;
@@ -207,7 +210,7 @@ export function calculateDigital(digital) {
   const dailyStreamingHours = sanitiseNumber(digital.streaming_hours_day);
   const cloudStorageGb = sanitiseNumber(digital.cloud_storage_gb);
 
-  const streamingKg = dailyStreamingHours * 365 * EMISSION_FACTORS.digital.streaming;
+  const streamingKg = dailyStreamingHours * DAYS_IN_YEAR * EMISSION_FACTORS.digital.streaming;
   const cloudKg = cloudStorageGb * EMISSION_FACTORS.digital.cloud_storage;
 
   const annual_kg = streamingKg + cloudKg;
@@ -302,22 +305,15 @@ export function calculateEquivalencies(annualKg) {
   };
 }
 
-// ─── REDUCTION ROADMAP ────────────────────────────────────────────────────────
-/**
- * Generates top 5 prioritised action roadmap based on the user's footprint profile.
- * @param {object} categories - { transport, food, home, shopping, digital } in kg/yr
- * @param {object} inputs - original user inputs
- * @returns {Array<object>} sorted action items
- */
-export function generateReductionRoadmap(categories, inputs) {
-  const actions = [];
+// ─── REDUCTION ROADMAP HELPERS ────────────────────────────────────────────────
 
-  // Transport actions
+function getTransportActions(categories, inputs) {
+  const actions = [];
   if (categories.transport > 200) {
     const vehicleType = inputs.transport?.vehicle_type;
     if (vehicleType === 'petrol_car' || vehicleType === 'diesel_car') {
       const dailyKm = sanitiseNumber(inputs.transport?.daily_km);
-      const annualKmSaved = dailyKm * 0.5 * 365;
+      const annualKmSaved = dailyKm * 0.5 * DAYS_IN_YEAR;
       const co2Saved = annualKmSaved * (EMISSION_FACTORS.transport[vehicleType] - EMISSION_FACTORS.transport.bus_metro);
       actions.push({
         category: 'transport',
@@ -339,10 +335,13 @@ export function generateReductionRoadmap(categories, inputs) {
       });
     }
   }
+  return actions;
+}
 
-  // Food actions
+function getFoodActions(categories, inputs) {
+  const actions = [];
   if (inputs.food?.diet_type === 'heavy_meat') {
-    const saved = (EMISSION_FACTORS.food.heavy_meat - EMISSION_FACTORS.food.low_meat) * 365;
+    const saved = (EMISSION_FACTORS.food.heavy_meat - EMISSION_FACTORS.food.low_meat) * DAYS_IN_YEAR;
     actions.push({
       category: 'food',
       action: 'Shift to Low-Meat diet (reduce red meat to 2x/week)',
@@ -351,7 +350,7 @@ export function generateReductionRoadmap(categories, inputs) {
       priority: categories.food
     });
   } else if (inputs.food?.diet_type === 'low_meat') {
-    const saved = (EMISSION_FACTORS.food.low_meat - EMISSION_FACTORS.food.vegetarian) * 365;
+    const saved = (EMISSION_FACTORS.food.low_meat - EMISSION_FACTORS.food.vegetarian) * DAYS_IN_YEAR;
     actions.push({
       category: 'food',
       action: 'Go Vegetarian 5 days a week',
@@ -360,11 +359,14 @@ export function generateReductionRoadmap(categories, inputs) {
       priority: categories.food
     });
   }
+  return actions;
+}
 
-  // Home energy actions
+function getHomeActions(categories, inputs) {
+  const actions = [];
   if (sanitiseNumber(inputs.home?.electricity_kwh_month) > 100) {
     const monthlyKwh = sanitiseNumber(inputs.home?.electricity_kwh_month);
-    const savedKwh = monthlyKwh * 0.2 * 12;
+    const savedKwh = monthlyKwh * 0.2 * MONTHS_IN_YEAR;
     const co2Saved = savedKwh * EMISSION_FACTORS.home_energy.electricity;
     actions.push({
       category: 'home',
@@ -374,8 +376,11 @@ export function generateReductionRoadmap(categories, inputs) {
       priority: categories.home
     });
   }
+  return actions;
+}
 
-  // Shopping actions
+function getShoppingActions(categories, inputs) {
+  const actions = [];
   if (sanitiseNumber(inputs.shopping?.fashion_items_year) > 5) {
     const items = sanitiseNumber(inputs.shopping?.fashion_items_year);
     const halfItems = Math.floor(items / 2);
@@ -388,11 +393,14 @@ export function generateReductionRoadmap(categories, inputs) {
       priority: categories.shopping
     });
   }
+  return actions;
+}
 
-  // Digital actions
+function getDigitalActions(categories, inputs) {
+  const actions = [];
   if (sanitiseNumber(inputs.digital?.streaming_hours_day) > 2) {
     const hoursDay = sanitiseNumber(inputs.digital?.streaming_hours_day);
-    const savedHours = hoursDay * 0.5 * 365;
+    const savedHours = hoursDay * 0.5 * DAYS_IN_YEAR;
     const co2Saved = savedHours * EMISSION_FACTORS.digital.streaming;
     actions.push({
       category: 'digital',
@@ -402,17 +410,32 @@ export function generateReductionRoadmap(categories, inputs) {
       priority: categories.digital
     });
   }
+  return actions;
+}
 
-  // Always add a universal action
-  actions.push({
-    category: 'offset',
-    action: 'Plant 5 native trees through a verified NGO',
-    co2_saved_kg: 5 * EQUIVALENCIES.tree_year_absorption_kg,
-    inr_savings: 0,
-    priority: 1
-  });
+// ─── REDUCTION ROADMAP ────────────────────────────────────────────────────────
+/**
+ * Generates top 5 prioritised action roadmap based on the user's footprint profile.
+ * @param {object} categories - { transport, food, home, shopping, digital } in kg/yr
+ * @param {object} inputs - original user inputs
+ * @returns {Array<object>} sorted action items
+ */
+export function generateReductionRoadmap(categories, inputs) {
+  const actions = [
+    ...getTransportActions(categories, inputs),
+    ...getFoodActions(categories, inputs),
+    ...getHomeActions(categories, inputs),
+    ...getShoppingActions(categories, inputs),
+    ...getDigitalActions(categories, inputs),
+    {
+      category: 'offset',
+      action: 'Plant 5 native trees through a verified NGO',
+      co2_saved_kg: 5 * EQUIVALENCIES.tree_year_absorption_kg,
+      inr_savings: 0,
+      priority: 1
+    }
+  ];
 
-  // Sort by priority descending and take top 5
   return actions
     .sort((a, b) => b.priority - a.priority)
     .slice(0, 5);

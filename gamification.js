@@ -19,6 +19,7 @@
 'use strict';
 
 const STORAGE_KEY = 'cfp_gamification_v1';
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 // ─── CHALLENGE DEFINITIONS ────────────────────────────────────────────────────
 export const CHALLENGES = {
@@ -90,6 +91,10 @@ const VIRTUAL_PEERS = [
 ];
 
 // ─── DEFAULT STATE ────────────────────────────────────────────────────────────
+/**
+ * Creates the initial default state for the gamification engine.
+ * @returns {object} The default state object.
+ */
 function createDefaultState() {
   return {
     version: 1,
@@ -120,15 +125,25 @@ function createDefaultState() {
 }
 
 // ─── DATE UTILITIES ───────────────────────────────────────────────────────────
+/**
+ * Returns today's date formatted as YYYY-MM-DD.
+ * @returns {string} The formatted date string.
+ */
 function getTodayString() {
   return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 }
 
+/**
+ * Calculates the number of full days between two date strings.
+ * @param {string|null} dateStr1 - The earlier date (YYYY-MM-DD).
+ * @param {string|null} dateStr2 - The later date (YYYY-MM-DD).
+ * @returns {number} The difference in days, or Infinity if missing.
+ */
 function daysBetween(dateStr1, dateStr2) {
   if (!dateStr1 || !dateStr2) return Infinity;
   const d1 = new Date(dateStr1);
   const d2 = new Date(dateStr2);
-  return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+  return Math.round((d2 - d1) / MS_PER_DAY);
 }
 
 // ─── PERSISTENCE ──────────────────────────────────────────────────────────────

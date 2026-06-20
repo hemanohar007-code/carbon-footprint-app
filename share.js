@@ -47,9 +47,20 @@ const TIER_PALETTE = {
 
 const CARD_WIDTH = 1080;
 const CARD_HEIGHT = 566;
+const NOISE_PARTICLES = 5000;
+const NOISE_ALPHA = 0.03;
 
 // ─── DRAWING HELPERS ──────────────────────────────────────────────────────────
 
+/**
+ * Draws a rectangle with rounded corners on the canvas.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {number} x - The x-coordinate.
+ * @param {number} y - The y-coordinate.
+ * @param {number} width - The width of the rectangle.
+ * @param {number} height - The height of the rectangle.
+ * @param {number} radius - The border radius.
+ */
 function roundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -64,6 +75,11 @@ function roundRect(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
+/**
+ * Draws the background gradient based on the current tier palette.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object for the active tier.
+ */
 function drawGradientBackground(ctx, palette) {
   const gradient = ctx.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
   gradient.addColorStop(0, palette.bg1);
@@ -72,11 +88,14 @@ function drawGradientBackground(ctx, palette) {
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 }
 
+/**
+ * Draws subtle noise texture for a premium glassmorphism feel.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ */
 function drawNoise(ctx) {
-  // Subtle noise texture for premium feel
   ctx.save();
-  ctx.globalAlpha = 0.03;
-  for (let i = 0; i < 5000; i++) {
+  ctx.globalAlpha = NOISE_ALPHA;
+  for (let i = 0; i < NOISE_PARTICLES; i++) {
     const x = Math.random() * CARD_WIDTH;
     const y = Math.random() * CARD_HEIGHT;
     ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
@@ -85,6 +104,11 @@ function drawNoise(ctx) {
   ctx.restore();
 }
 
+/**
+ * Draws an accent line to visually separate the header.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ */
 function drawAccentLine(ctx, palette) {
   const grad = ctx.createLinearGradient(0, 0, CARD_WIDTH, 0);
   grad.addColorStop(0, 'transparent');
@@ -101,6 +125,11 @@ function drawAccentLine(ctx, palette) {
   ctx.restore();
 }
 
+/**
+ * Draws the CarbonMirror logo and subtitle.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ */
 function drawLogo(ctx, palette) {
   ctx.save();
   // Earth icon
@@ -119,6 +148,13 @@ function drawLogo(ctx, palette) {
   ctx.restore();
 }
 
+/**
+ * Draws the user's total carbon score and tier label.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ * @param {number} totalKg - The user's annual CO2 footprint.
+ * @param {string} tier - The user's tier ('green', 'yellow', 'orange', 'red').
+ */
 function drawMainScore(ctx, palette, totalKg, tier) {
   const cx = CARD_WIDTH / 2;
 
@@ -153,6 +189,12 @@ function drawMainScore(ctx, palette, totalKg, tier) {
   ctx.restore();
 }
 
+/**
+ * Draws three relational equivalency cards (e.g. drives, trees).
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ * @param {object} equivalencies - The equivalencies data object.
+ */
 function drawEquivalencies(ctx, palette, equivalencies) {
   const startX = 80;
   const startY = CARD_HEIGHT * 0.68;
@@ -193,6 +235,12 @@ function drawEquivalencies(ctx, palette, equivalencies) {
   ctx.restore();
 }
 
+/**
+ * Draws earned gamification badges.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ * @param {object[]} badges - Array of badge objects.
+ */
 function drawBadges(ctx, palette, badges) {
   if (!badges || badges.length === 0) return;
 
@@ -228,6 +276,12 @@ function drawBadges(ctx, palette, badges) {
   ctx.restore();
 }
 
+/**
+ * Draws the user's top recommended pledge/action.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ * @param {object} topAction - The top priority action object.
+ */
 function drawPledge(ctx, palette, topAction) {
   if (!topAction) return;
   ctx.save();
@@ -256,6 +310,11 @@ function drawPledge(ctx, palette, topAction) {
   ctx.restore();
 }
 
+/**
+ * Draws the watermark text at the bottom right.
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+ * @param {object} palette - The color palette object.
+ */
 function drawWatermark(ctx, palette) {
   ctx.save();
   ctx.fillStyle = palette.text;

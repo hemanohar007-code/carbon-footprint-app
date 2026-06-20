@@ -88,6 +88,11 @@ let _reducedMotion = false;
 let _initialized = false;
 
 // ─── SEEDED PSEUDO-RANDOM (deterministic for cracks/terrain) ─────────────────
+/**
+ * Creates a deterministic pseudo-random number generator based on a seed.
+ * @param {number} seed - The initial seed value.
+ * @returns {function(): number} A function returning a float between 0 and 1.
+ */
 function seededRand(seed) {
   let s = seed;
   return function () {
@@ -97,6 +102,14 @@ function seededRand(seed) {
 }
 
 // ─── PARTICLE SYSTEM ──────────────────────────────────────────────────────────
+/**
+ * Creates a single smoke particle object.
+ * @param {number} cx - Center X coordinate.
+ * @param {number} cy - Center Y coordinate.
+ * @param {number} r - Planet radius.
+ * @param {object} config - Tier configuration object.
+ * @returns {object} Particle object with coordinates and physics properties.
+ */
 function createParticle(cx, cy, r, config) {
   const angle = Math.random() * Math.PI * 2;
   const dist = r * (0.8 + Math.random() * 0.4);
@@ -112,6 +125,15 @@ function createParticle(cx, cy, r, config) {
   };
 }
 
+/**
+ * Generates an array of crack objects radiating from the planet surface.
+ * @param {number} seed - Random seed for deterministic cracks.
+ * @param {number} count - Number of cracks to generate.
+ * @param {number} radius - Planet radius.
+ * @param {number} cx - Center X coordinate.
+ * @param {number} cy - Center Y coordinate.
+ * @returns {object[]} Array of crack objects.
+ */
 function generateCracks(seed, count, radius, cx, cy) {
   const rand = seededRand(seed);
   const cracks = [];
@@ -137,6 +159,13 @@ function generateCracks(seed, count, radius, cx, cy) {
 }
 
 // ─── DRAW PLANET SURFACE ──────────────────────────────────────────────────────
+/**
+ * Renders the main planet body, atmosphere, and surface features.
+ * @param {object} config - Tier configuration object.
+ * @param {number} cx - Center X coordinate.
+ * @param {number} cy - Center Y coordinate.
+ * @param {number} r - Planet radius.
+ */
 function drawPlanet(config, cx, cy, r) {
   const ctx = _ctx;
   ctx.save();
@@ -234,6 +263,9 @@ function drawPlanet(config, cx, cy, r) {
 }
 
 // ─── DRAW SMOKE PARTICLES ─────────────────────────────────────────────────────
+/**
+ * Renders all active smoke particles to the canvas.
+ */
 function drawParticles() {
   const ctx = _ctx;
   for (const p of _particles) {
@@ -248,6 +280,13 @@ function drawParticles() {
 }
 
 // ─── UPDATE PARTICLES ────────────────────────────────────────────────────────
+/**
+ * Updates physics for existing particles and spawns new ones if needed.
+ * @param {object} config - Tier configuration object.
+ * @param {number} cx - Center X coordinate.
+ * @param {number} cy - Center Y coordinate.
+ * @param {number} r - Planet radius.
+ */
 function updateParticles(config, cx, cy, r) {
   if (!config.smokeEnabled || _reducedMotion) {
     _particles = [];
@@ -271,6 +310,9 @@ function updateParticles(config, cx, cy, r) {
 }
 
 // ─── MAIN DRAW LOOP ───────────────────────────────────────────────────────────
+/**
+ * The core animation loop. Clears the canvas and renders the next frame.
+ */
 function draw() {
   if (!_canvas || !_ctx) return;
 
@@ -300,6 +342,9 @@ function draw() {
 }
 
 // ─── RESIZE HANDLER ───────────────────────────────────────────────────────────
+/**
+ * Handles window resize events, debounced to prevent performance drops.
+ */
 function onResize() {
   if (_resizeTimeout) clearTimeout(_resizeTimeout);
   _resizeTimeout = setTimeout(() => {
@@ -316,12 +361,30 @@ function onResize() {
 }
 
 // ─── COLOR UTILITIES ──────────────────────────────────────────────────────────
+/**
+ * Lightens a hex color by a specified amount.
+ * @param {string} hex - Hex color code.
+ * @param {number} amount - Amount to lighten (0-255).
+ * @returns {string} The resulting rgb() color.
+ */
 function lightenColor(hex, amount) {
   return adjustColor(hex, amount);
 }
+/**
+ * Darkens a hex color by a specified amount.
+ * @param {string} hex - Hex color code.
+ * @param {number} amount - Amount to darken (0-255).
+ * @returns {string} The resulting rgb() color.
+ */
 function darkenColor(hex, amount) {
   return adjustColor(hex, -amount);
 }
+/**
+ * Adjusts a hex color's brightness.
+ * @param {string} hex - Hex color code.
+ * @param {number} amount - Positive to lighten, negative to darken.
+ * @returns {string} The resulting rgb() color.
+ */
 function adjustColor(hex, amount) {
   const num = parseInt(hex.replace('#', ''), 16);
   const r = Math.min(255, Math.max(0, (num >> 16) + amount));
