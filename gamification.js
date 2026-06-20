@@ -178,7 +178,6 @@ function _persistState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
   } catch {
     // localStorage may be unavailable in private mode
-    console.warn('[gamification] localStorage unavailable – state will not persist.');
   }
 }
 

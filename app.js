@@ -1040,8 +1040,6 @@ function init() {
 
   // Show calculator by default
   navigateTo('calculator');
-
-  console.log('[CarbonMirror] Application initialized.');
 }
 
 // ─── EVENT BINDING HELPERS ────────────────────────────────────────────────────

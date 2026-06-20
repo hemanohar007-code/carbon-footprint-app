@@ -1766,3 +1766,23 @@ body::before {
 
 /* calc-form-col fix (removed inline div, now named class) */
 .calc-form-col { min-width: 0; }
+
+/* Utilities */
+.btn-theme {
+  margin-left: 8px;
+  border-radius: 99px;
+  padding: 4px 10px;
+}
+
+.mb-md {
+  margin-bottom: 20px;
+}
+
+.roadmap-badges-desc {
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.text-sm {
+  font-size: 0.8rem;
+}
